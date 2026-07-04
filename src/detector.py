@@ -8,7 +8,7 @@ class FaceDetector:
 
     def __init__(self, min_face_size=40, thresholds=None, device=None):
         if thresholds is None:
-            thresholds = [0.6, 0.7, 0.7]
+            thresholds = [0.5, 0.6, 0.6]
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
