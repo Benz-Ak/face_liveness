@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Face Liveness Detection</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-content">
+          <h1 class="logo">🔍 Liveness</h1>
+          <p class="tagline">Detect authentic faces</p>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <!-- Configuration Panel -->
+        <section class="config-panel">
+          <h2 class="section-title">Settings</h2>
+
+          <div class="form-group">
+            <label for="model-select" class="label">Model</label>
+            <select id="model-select" class="select-input">
+              <option value="v1">V1 – NUAA only</option>
+              <option value="v2" selected>V2 – NUAA + LCC FASD</option>
+            </select>
+            <p class="form-hint">V2 has better cross-domain performance</p>
+          </div>
+
+          <div class="form-group">
+            <label for="threshold-slider" class="label">
+              Threshold: <span id="threshold-value">0.50</span>
+            </label>
+            <input
+              type="range"
+              id="threshold-slider"
+              class="slider-input"
+              min="0.3"
+              max="0.9"
+              step="0.05"
+              value="0.5"
+            />
+            <p class="form-hint">
+              Higher = stricter (requires higher confidence for "Real")
+            </p>
+          </div>
+        </section>
+
+        <!-- Input Tabs -->
+        <nav class="tab-nav">
+          <button class="tab-btn active" data-tab="upload">📁 Upload</button>
+          <button class="tab-btn" data-tab="camera">📷 Camera</button>
+          <button class="tab-btn" data-tab="help">ℹ️ Guide</button>
+        </nav>
+
+        <!-- Tab 1: Upload -->
+        <section class="tab-panel active" id="upload-panel">
+          <div class="upload-area" id="upload-area">
+            <svg
+              class="upload-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p class="upload-text">Tap to upload or drag image</p>
+            <p class="upload-hint">JPG, PNG • Max 10MB</p>
+            <input
+              type="file"
+              id="file-input"
+              class="file-input"
+              accept="image/*"
+            />
+          </div>
+
+          <div id="upload-preview" class="image-preview hidden">
+            <img id="preview-img" src="" alt="preview" />
+            <button class="btn-secondary" id="clear-upload">Clear</button>
+          </div>
+        </section>
+
+        <!-- Tab 2: Camera -->
+        <section class="tab-panel" id="camera-panel">
+          <div class="camera-container">
+            <video id="camera-video" class="camera-video" playsinline></video>
+            <div class="camera-overlay">
+              <div class="face-frame"></div>
+            </div>
+            <button class="btn-primary capture-btn" id="capture-btn">
+              📷 Capture
+            </button>
+            <button class="btn-secondary" id="toggle-camera">
+              Start Camera
+            </button>
+          </div>
+
+          <div id="camera-preview" class="image-preview hidden">
+            <img id="camera-preview-img" src="" alt="capture" />
+            <button class="btn-secondary" id="retake-photo">Retake</button>
+          </div>
+        </section>
+
+        <!-- Tab 3: Help -->
+        <section class="tab-panel" id="help-panel">
+          <div class="help-content">
+            <div class="help-card">
+              <h3>How to use</h3>
+              <ol class="help-steps">
+                <li>Choose a model (V2 recommended)</li>
+                <li>Upload image or capture with camera</li>
+                <li>Review verdict and confidence</li>
+                <li>Check latency metrics below result</li>
+              </ol>
+            </div>
+
+            <div class="help-card">
+              <h3>Tips for best results</h3>
+              <ul class="help-tips">
+                <li>Good lighting, no shadows on face</li>
+                <li>Face clearly visible, centered</li>
+                <li>Camera at eye level or slightly above</li>
+                <li>Natural pose, minimal expression change</li>
+              </ul>
+            </div>
+
+            <div class="help-card">
+              <h3>Model performance</h3>
+              <p class="model-perf">
+                <strong>V2 on NUAA:</strong> F1 0.9979 • HTER 0.0023
+              </p>
+              <p class="model-perf">
+                <strong>V2 on LCC FASD:</strong> F1 0.8721 • HTER 0.0057
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Analysis Result -->
+        <section id="result-section" class="result-section hidden">
+          <h2 class="section-title">Analysis Result</h2>
+
+          <div id="result-container">
+            <!-- Result injected by JS -->
+          </div>
+
+          <div class="result-actions">
+            <button class="btn-secondary" id="analyze-another">
+              Analyze Another
+            </button>
+          </div>
+        </section>
+
+        <!-- Status Messages -->
+        <div id="status-message" class="status-message"></div>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="spinner hidden">
+          <div class="spinner-ring"></div>
+          <p>Analyzing...</p>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p>Face Liveness Detection • M1 Cybersecurity — University of Buea</p>
+      </footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
