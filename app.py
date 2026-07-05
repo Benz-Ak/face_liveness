@@ -208,6 +208,10 @@ def convert_to_bgr(uploaded_file):
     pil_img = Image.open(uploaded_file).convert("RGB")
     np_img = np.array(pil_img)
     bgr_img = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+    print("=" * 50)
+    print("Original image shape :", bgr_img.shape)
+    print("Image dtype :", bgr_img.dtype)
+    print("=" * 50)
     return pil_img, bgr_img
 
 

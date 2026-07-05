@@ -37,6 +37,11 @@ class LivenessPipeline:
 
         for det in detections:
             bbox = det["bbox"]
+            print("Detected bbox :", bbox)
+
+            x1, y1, x2, y2 = bbox
+            print("Face width :", x2 - x1)
+            print("Face height:", y2 - y1)
 
             # Stage 2 — Preprocessing
             t1 = time.perf_counter()
