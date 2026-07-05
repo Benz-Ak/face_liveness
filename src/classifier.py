@@ -45,7 +45,6 @@ class LivenessClassifier:
 
         return model
 
-    
     def predict(self, tensor):
         """
         Input : torch.FloatTensor [1, 3, 224, 224]
@@ -60,23 +59,14 @@ class LivenessClassifier:
             logits = self.model(tensor)                     # [1, 2]
             probs  = torch.softmax(logits, dim=1)[0]        # [2]
 
-        spoof_prob = probs[0].item()
         real_prob  = probs[1].item()
-
-        # Choix de la classe dominante (0=Spoof, 1=Real)
-        if real_prob >= self.threshold:
-            label = "Real"
-            confidence = real_prob
-        else:
-            label = "Spoof"
-            confidence = spoof_prob
+        label      = "Real" if real_prob >= self.threshold else "Spoof"
 
         return {
             "label":      label,
-            "confidence": float(confidence),
-            "raw_scores": [spoof_prob, real_prob]  # [P(spoof), P(real)]
+            "confidence": real_prob if label == "Real" else 1 - real_prob,
+            "raw_scores": [probs[0].item(), probs[1].item()]  # [P(spoof), P(real)]
         }
-
 
     def load_weights(self, path):
         state = torch.load(path, map_location=self.device)

@@ -1,5 +1,4 @@
 # src/preprocessor.py
-
 import cv2
 import torch
 import numpy as np
@@ -8,30 +7,20 @@ from torchvision import transforms
 
 class FacePreprocessor:
 
-    def __init__(self, training=False, padding_factor=0.20):
+    def __init__(self, training=False):
         """
-        training=True  : active les augmentations (entraînement)
+        training=True  : active les augmentations (entraînement uniquement)
         training=False : pipeline déterministe (inférence)
-
-        padding_factor :
-            0.0  -> crop exact
-            0.2  -> ajoute 20% de contexte autour du visage
         """
-
-        self.padding_factor = padding_factor
-
         imagenet_mean = [0.485, 0.456, 0.406]
-        imagenet_std = [0.229, 0.224, 0.225]
+        imagenet_std  = [0.229, 0.224, 0.225]
 
         if training:
             self.transform = transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize((224, 224)),
                 transforms.RandomHorizontalFlip(p=0.5),
-                transforms.ColorJitter(
-                    brightness=0.2,
-                    contrast=0.2
-                ),
+                transforms.ColorJitter(brightness=0.2, contrast=0.2),
                 transforms.ToTensor(),
                 transforms.Normalize(imagenet_mean, imagenet_std),
             ])
@@ -45,59 +34,32 @@ class FacePreprocessor:
 
     def crop(self, frame, bbox):
         """
-        Crop du visage avec un léger padding.
+        Crop face region from frame using bbox [x1, y1, x2, y2].
+        Clamps coordinates to frame boundaries.
+        Returns RGB np.ndarray or None if bbox is invalid.
         """
-
         h, w = frame.shape[:2]
-
-        x1, y1, x2, y2 = bbox
-
-        bw = x2 - x1
-        bh = y2 - y1
-
-        pad_x = int(bw * self.padding_factor)
-        pad_y = int(bh * self.padding_factor)
-
-        x1 = max(0, x1 - pad_x)
-        y1 = max(0, y1 - pad_y)
-        x2 = min(w, x2 + pad_x)
-        y2 = min(h, y2 + pad_y)
+        x1 = max(0, bbox[0])
+        y1 = max(0, bbox[1])
+        x2 = min(w, bbox[2])
+        y2 = min(h, bbox[3])
 
         if x2 <= x1 or y2 <= y1:
             return None
 
         face_bgr = frame[y1:y2, x1:x2]
         face_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
-
         return face_rgb
 
     def process(self, frame, bbox):
         """
-        Pipeline complet :
-            crop
-            -> sauvegarde debug
-            -> resize
-            -> normalisation
-            -> tensor
+        Full pipeline: crop → resize → normalize → tensor.
+        Input : BGR frame + bbox [x1,y1,x2,y2]
+        Output: torch.FloatTensor [1, 3, 224, 224] or None
         """
-
         face = self.crop(frame, bbox)
-
         if face is None:
             return None
 
-        # ==========================================================
-        # IMAGE EXACTEMENT ENVOYÉE AU MODÈLE
-        # ==========================================================
-        cv2.imwrite(
-            "debug_crop.jpg",
-            cv2.cvtColor(face, cv2.COLOR_RGB2BGR)
-        )
-
-        tensor = self.transform(face)
-
-        print("Tensor shape :", tensor.unsqueeze(0).shape)
-        print("Tensor min :", tensor.min().item())
-        print("Tensor max :", tensor.max().item())
-
-        return tensor.unsqueeze(0)
+        tensor = self.transform(face)        # [3, 224, 224]
+        return tensor.unsqueeze(0)           # [1, 3, 224, 224]
